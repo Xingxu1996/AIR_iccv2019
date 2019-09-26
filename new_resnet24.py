@@ -121,14 +121,14 @@ class ResNet(nn.Module):
             l4 = x
 
 
-        s2 = l2.sum(1) / 100
+        s2 = l2.sum(1) #/ 100
+        #
+        s4 = l4.sum(1) #/ 1000
 
-        s4 = l4.sum(1) / 1000
 
+        sw2 = s2 / (s2.view(x.size(0), -1).sum(1)).unsqueeze(1).unsqueeze(2)
 
-        sw2 = F.softmax((s2.view(x.size(0), -1)), dim=1).view(x.size(0), 28, 28)
-
-        sw4 = F.softmax((s4.view(x.size(0), -1)), dim=1).view(x.size(0), 7, 7)
+        sw4 = s4 / (s4.view(x.size(0), -1).sum(1)).unsqueeze(1).unsqueeze(2)
 
 
         l2 = l2 * sw2.unsqueeze(1)
@@ -155,8 +155,8 @@ class ResNet(nn.Module):
                 temp1 = c2[i, j, :, :].cpu().data.numpy()
                 temp1 = np.maximum(temp1, 0)
                 temp1 = temp1 - np.min(temp1)
-                temp1 = temp1 / (np.max(temp1)+1e-7)
-                cam2[i] = cam2[i]+ nn2[i, j] * temp1
+                temp1 = temp1 / (np.max(temp1)+1e-8)
+                cam2[i] = cam2[i] + nn2[i, j] * temp1
         cam2 = torch.FloatTensor(cam2)
         l2 = l2 * cam2.unsqueeze(1).cuda()
         l2 = self.stack1(l2)
@@ -167,8 +167,8 @@ class ResNet(nn.Module):
                 temp2 = c4[i, j, :, :].cpu().data.numpy()
                 temp2 = np.maximum(temp2, 0)
                 temp2 = temp2 - np.min(temp2)
-                temp2 = temp2 / (np.max(temp2)+1e-7)
-                cam4[i] =cam4[i]+ nn4[i, j] * temp2
+                temp2 = temp2 / (np.max(temp2)+1e-8)
+                cam4[i] =cam4[i] + nn4[i, j] * temp2
         cam4 = torch.FloatTensor(cam4)
         l4 = l4 * cam4.unsqueeze(1).cuda()
         l4 = self.stack3(l4)
